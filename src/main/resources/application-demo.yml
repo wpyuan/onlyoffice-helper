@@ -1,0 +1,18 @@
+server:
+  port: 9000
+onlyoffice:
+  schema-host: ${SCHEMA_HOST:http://192.168.137.1:8000}
+  api-js-url: ${SCHEMA_HOST:http://192.168.137.1:8000}/web-apps/apps/api/documents/api.js
+  storage-folder: app_data
+  filesize-max: 5242880
+  files:
+    docservice:
+      header: Authorization
+      viewed-docs: .pdf|.djvu|.xps
+      edited-docs: .docx|.xlsx|.csv|.pptx|.txt
+      convert-docs: .docm|.dotx|.dotm|.dot|.doc|.odt|.fodt|.ott|.xlsm|.xltx|.xltm|.xlt|.xls|.ods|.fods|.ots|.pptm|.ppt|.ppsx|.ppsm|.pps|.potx|.potm|.pot|.odp|.fodp|.otp|.rtf|.mht|.html|.htm|.epub
+      timeout: 120000
+      secret:
+      url:
+        tempstorage: ${SCHEMA_HOST:http://192.168.137.1:8000}/ResourceService.ashx
+        converter: ${SCHEMA_HOST:http://192.168.137.1:8000}/ConvertService.ashx

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head runat="server">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <title>在线编辑</title>
+    <link rel="icon" href="../image/text.ico" type="image/x-icon"/>
+    <link rel="stylesheet" type="text/css" href="../css/editor.css"/>
+</head>
+<body>
+<div class="form">
+    <div id="iframeEditor">
+    </div>
+</div>
+<script type="text/javascript" src="http://192.168.137.1:8000/web-apps/apps/api/documents/api.js"></script>
+<script src="../js/jquery-3.5.1.min.js"></script>
+<script type="text/javascript" language="javascript">
+
+    var docEditor;
+
+    var innerAlert = function (message) {
+        if (console && console.log)
+            console.log(message);
+    };
+
+    var onAppReady = function () {
+        innerAlert("Document editor ready");
+    };
+
+    var onDocumentStateChange = function (event) {
+        var title = document.title.replace(/\*$/g, "");
+        document.title = title + (event.data ? "*" : "");
+    };
+
+    var onRequestEditRights = function () {
+        location.href = location.href.replace(RegExp("mode=view\&?", "i"), "");
+    };
+
+    var onError = function (event) {
+        if (event)
+            innerAlert(event.data);
+    };
+
+    var onOutdatedVersion = function (event) {
+        location.reload(true);
+    };
+
+    var replaceActionLink = function (href, linkParam) {
+        var link;
+        var actionIndex = href.indexOf("&actionLink=");
+        if (actionIndex != -1) {
+            var endIndex = href.indexOf("&", actionIndex + "&actionLink=".length);
+            if (endIndex != -1) {
+                link = href.substring(0, actionIndex) + href.substring(endIndex) + "&actionLink=" + encodeURIComponent(linkParam);
+            } else {
+                link = href.substring(0, actionIndex) + "&actionLink=" + encodeURIComponent(linkParam);
+            }
+        } else {
+            link = href + "&actionLink=" + encodeURIComponent(linkParam);
+        }
+        return link;
+    }
+
+    var onMakeActionLink = function (event) {
+        var actionData = event.data;
+        var linkParam = JSON.stringify(actionData);
+        docEditor.setActionLink(replaceActionLink(location.href, linkParam));
+    };
+
+    function queryString(name) {
+        var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+        if (result == null || result.length < 1) {
+            return "";
+        }
+        return result[1];
+    }
+
+    var config;
+
+    function initData() {
+        var fileModel;
+        var history;
+        var historyData;
+
+        $.ajax({
+            url: '/editor/loadData?fileName=' + queryString("fileName") + '&uid=' + queryString("uid") +
+                '&uname=' + queryString("uname") + '&actionLink=' + queryString("actionLink") +
+                '&mode=' + queryString("mode") + '&type=' + queryString("type"),
+            type: 'get',
+            async: false,
+            success: function (res) {
+                if (res == null) {
+                    return;
+                }
+                fileModel = res.model;
+                history = res.history;
+                historyData = res.historyData;
+                initConfig(fileModel, history, historyData);
+            }
+        });
+    }
+
+    function initConfig(fileModel, history, historyData) {
+        config = JSON.parse(fileModel);
+        config.width = "100%";
+        config.height = "100%";
+        config.events = {
+            "onAppReady": onAppReady,
+            "onDocumentStateChange": onDocumentStateChange,
+            'onRequestEditRights': onRequestEditRights,
+            "onError": onError,
+            "onOutdatedVersion": onOutdatedVersion,
+            "onMakeActionLink": onMakeActionLink,
+        };
+
+        if ((history && history.trim() != '') && (historyData && historyData.trim() != '')) {
+            config.events['onRequestHistory'] = function () {
+                docEditor.refreshHistory(JSON.parse(history));
+            };
+            config.events['onRequestHistoryData'] = function (event) {
+                var ver = event.data;
+                var histData = JSON.parse(historyData);
+                docEditor.setHistoryData(histData[ver]);
+            };
+            config.events['onRequestHistoryClose'] = function () {
+                document.location.reload();
+            };
+        }
+    }
+
+    var connectEditor = function () {
+        initData();
+        docEditor = new DocsAPI.DocEditor("iframeEditor", config);
+    };
+
+    fixSize = function () {
+        var wrapEl = document.getElementsByClassName("form");
+        if (wrapEl.length) {
+            wrapEl[0].style.height = screen.availHeight + "px";
+            window.scrollTo(0, -1);
+            wrapEl[0].style.height = window.innerHeight + "px";
+        }
+    };
+
+    if (window.addEventListener) {
+        window.addEventListener("load", connectEditor);
+        window.addEventListener("resize", fixSize);
+    } else if (window.attachEvent) {
+        window.attachEvent("onload", connectEditor);
+        window.attachEvent("onresize", fixSize);
+    }
+
+</script>
+
+</body>
+</html>

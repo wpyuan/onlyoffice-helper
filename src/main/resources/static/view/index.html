@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head runat="server">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <title>在线文档编辑</title>
+    <link rel="icon" href="../image/text.ico" type="image/x-icon"/>
+    <link rel="stylesheet" type="text/css" href="../css/editor.css"/>
+    <link rel="stylesheet" href="../element-ui/css/element.css">
+</head>
+<body>
+<div id="app">
+    <div class="context">
+        <el-form ref="form" :model="form" label-width="80px">
+            <el-form-item label="用户">
+                <el-select v-model="form.uid" placeholder="请选择用户" @change="handleChange">
+                    <el-option v-for="(item, index) in userOptions" :key="index" :label="item.label"
+                               :value="item.value" :disabled="item.disabled"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="语言">
+                <el-select v-model="form.language" placeholder="请选择语言">
+                    <el-option label="Chinese" value="zh"></el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <el-divider content-position="left">上传</el-divider>
+        <el-upload
+                class="upload-demo"
+                action="/upload"
+                :on-preview="handlePreview"
+                :on-remove="handleRemove"
+                :on-success="handleSuccess"
+                :before-upload="beforeUpload"
+                :data="uploadData"
+                multiple
+                :file-list="fileList">
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">上传word文档</div>
+        </el-upload>
+        <el-divider content-position="left">编辑</el-divider>
+        <el-table :data="fileList" border style="width: 100%" height="450">
+            <el-table-column fixed prop="name" label="文件名" width="150"></el-table-column>
+            <el-table-column prop="path" label="路径"></el-table-column>
+            <el-table-column prop="size" label="大小" width="100"></el-table-column>
+            <el-table-column label="操作" width="120">
+                <el-table-column label="编辑">
+                    <el-table-column label="常规">
+                        <template slot-scope="scope">
+                            <el-button @click="handleClick(scope.row, 'desktop', 'edit')" type="text" size="small">大屏</el-button>
+                            <el-button @click="handleClick(scope.row, 'mobile', 'edit')" type="text" size="small">手机</el-button>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="其他（仅大屏）">
+                        <template slot-scope="scope">
+                            <el-button @click="handleClick(scope.row, 'desktop', 'review')" type="text" size="small">review</el-button>
+                            <el-button @click="handleClick(scope.row, 'desktop', 'comment')" type="text" size="small">comment</el-button>
+                            <el-button @click="handleClick(scope.row, 'desktop', 'fillForms')" type="text" size="small">fillForms</el-button>
+                            <el-button @click="handleClick(scope.row, 'desktop', 'blockcontent')" type="text" size="small">blockcontent</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table-column>
+                <el-table-column label="查看">
+                    <template slot-scope="scope">
+                        <el-button @click="handleClick(scope.row, 'desktop', 'view')" type="text" size="small">大屏</el-button>
+                        <el-button @click="handleClick(scope.row, 'mobile', 'view')" type="text" size="small">手机</el-button>
+                        <el-button @click="handleClick(scope.row, 'embedded', 'embedded')" type="text" size="small">embedded</el-button>
+                    </template>
+                </el-table-column>
+            </el-table-column>
+        </el-table>
+    </div>
+</div>
+<script src="../element-ui/js/vue.js"></script>
+<script src="../element-ui/js/element.js"></script>
+<script src="../js/jquery-3.5.1.min.js"></script>
+</body>
+<script type="text/javascript" language="javascript">
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                form: {
+                    uid: undefined,
+                    uname: undefined,
+                    language: undefined,
+                },
+                fileList: [],
+                uploadData: null,
+                userOptions: [{
+                    "label": "John Smith",
+                    "value": "uid-1"
+                }, {
+                    "label": "Mark Pottato",
+                    "value": "uid-2"
+                }, {
+                    "label": "Hamish Mitchell",
+                    "value": "uid-3"
+                }],
+            }
+        },
+        mounted() {
+            this.initData()
+        },
+        methods: {
+            initData() {
+                let that = this;
+                $.ajax({
+                    url: '/initData',
+                    type: 'get',
+                    success: function (res) {
+                        that.fileList = res.fileList;
+                    },
+                    error: function () {
+                        that.$notify.error({
+                            title: '错误',
+                            message: '网络错误，请稍后再试'
+                        });
+                    }
+                });
+            },
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+            handlePreview(file) {
+                window.location.herf = file.url;
+            },
+            beforeUpload(file) {
+                if (!this.form.uid || !this.form.uname) {
+                    this.$message.error('请填写用户');
+                    return false;
+                }
+                this.uploadData = this.form;
+                let promise = new Promise((resolve) => {
+                    this.$nextTick(function () {
+                        resolve(true)
+                    });
+                });
+                return promise;
+            },
+            handleSuccess(response, file, fileList) {
+               this.initData();
+            },
+            handleChange(value) {
+                for(i in this.userOptions) {
+                    if (this.userOptions[i].value == this.form.uid) {
+                        this.form.uname = this.userOptions[i].label;
+                    }
+                }
+            },
+            handleClick(row, type, mode) {
+                if (!this.form.uid || !this.form.uname || !this.form.language) {
+                    this.$message.error('请填写用户和语言');
+                    return false;
+                }
+                window.location.href = `/view/editor.html?fileName=${row.name}&uid=${this.form.uid}&uname=${this.form.uname}&mode=${mode}&type=${type}`;
+            },
+        }
+    });
+</script>
+<style>
+    .context {
+        border-radius: 8px;
+        border: 1px solid #bdd1e0;
+        width: 90%;
+        margin: 30px auto;
+        padding: 30px;
+    }
+</style>
+</html>
