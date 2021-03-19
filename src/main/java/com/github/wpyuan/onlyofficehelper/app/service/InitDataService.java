@@ -4,7 +4,6 @@ import com.github.wpyuan.onlyofficehelper.api.dto.FileDto;
 import com.github.wpyuan.onlyofficehelper.api.dto.IndexDto;
 import com.github.wpyuan.onlyofficehelper.infra.helper.DocumentManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
