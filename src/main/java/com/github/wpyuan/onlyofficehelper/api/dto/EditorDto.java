@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EditorDto {
+    private String apiJsUrl;
     private String model;
     private String history;
     private String historyData;

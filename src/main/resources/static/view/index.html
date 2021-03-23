@@ -23,7 +23,8 @@
             </el-form-item>
             <el-form-item label="语言">
                 <el-select v-model="form.language" placeholder="请选择语言">
-                    <el-option label="Chinese" value="zh"></el-option>
+                    <el-option label="中文" value="zh"></el-option>
+                    <el-option label="English" value="en"></el-option>
                 </el-select>
             </el-form-item>
         </el-form>
@@ -157,7 +158,7 @@
                     this.$message.error('请填写用户和语言');
                     return false;
                 }
-                window.location.href = `/view/editor.html?fileName=${row.name}&uid=${this.form.uid}&uname=${this.form.uname}&mode=${mode}&type=${type}`;
+                window.location.href = `/view/editor.html?fileName=${row.name}&uid=${this.form.uid}&uname=${this.form.uname}&mode=${mode}&type=${type}&language=${this.form.language}`;
             },
         }
     });
