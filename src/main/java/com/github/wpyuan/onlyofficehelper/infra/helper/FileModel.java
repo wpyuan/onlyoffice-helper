@@ -238,7 +238,7 @@ public class FileModel {
 
         public class Customization {
             public Goback goback;
-
+            public Boolean trackChanges = Boolean.TRUE;
             public Customization() {
                 goback = new Goback();
             }
